@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>修士課程・目標管理カウントダウン</title>
+    <title>修士課程・個人目標管理ダッシュボード</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -23,10 +23,12 @@
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
             width: 100%;
-            max-width: 700px;
+            max-width: 650px;
+            position: relative;
         }
         .section {
             margin-bottom: 35px;
+            position: relative;
         }
         .section:last-child {
             margin-bottom: 0;
@@ -39,8 +41,21 @@
             letter-spacing: 0.05em;
             border-left: 4px solid #3498db;
             padding-left: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        /* カウントダウンのスタイル */
+        .vision-display {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1.6;
+            background: #fafbfc;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed #cbd5e1;
+        }
+        /* カウントダウン */
         .countdown {
             display: flex;
             gap: 12px;
@@ -64,14 +79,14 @@
             font-size: 0.75rem;
             color: #64748b;
         }
-        /* 進捗バーのスタイル */
+        /* 進捗バー */
         .progress-container {
             background: #e2e8f0;
             border-radius: 10px;
             height: 12px;
             width: 100%;
             overflow: hidden;
-            margin-top: 12px;
+            margin-top: 15px;
         }
         .progress-bar {
             background: linear-gradient(90deg, #3498db, #2ecc71);
@@ -86,29 +101,124 @@
             justify-content: space-between;
             margin-top: 5px;
         }
-        /* カレンダー埋め込みエリア */
-        .calendar-wrapper {
-            position: relative;
-            padding-bottom: 75%; /* 4:3 の比率でレスポンシブ対応 */
-            height: 0;
-            overflow: hidden;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+        /* マイルストーンリスト */
+        .milestone-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
-        .calendar-wrapper iframe {
+        .milestone-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .milestone-item:last-child {
+            border-bottom: none;
+        }
+        .milestone-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .milestone-title {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .milestone-desc {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 2px;
+        }
+        .milestone-date-display {
+            font-size: 0.9rem;
+            color: #3498db;
+            font-weight: bold;
+            white-space: nowrap;
+            margin-left: 15px;
+        }
+        /* ボタンとフォーム関係 */
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-edit-toggle {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 15px;
+            right: 15px;
+            background: #475569;
+        }
+        .btn-edit-toggle:hover {
+            background: #334155;
+        }
+        .edit-mode-panel {
+            display: none;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+        input[type="text"], input[type="date"], textarea {
             width: 100%;
-            height: 100%;
-            border: 0;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+            color: inherit;
+        }
+        .milestone-inputs {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .btn-delete {
+            background: #e74c3c;
+            padding: 4px 8px;
+            margin-top: 5px;
+        }
+        .btn-delete:hover {
+            background: #c0392b;
         }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <!-- 1. 卒業カウントダウンと全体の進捗率 -->
+    <button class="btn btn-edit-toggle" id="editToggleBtn" onclick="toggleEditMode()">⚙️ 設定・編集モード</button>
+
+    <!-- 1. 目的・長期目標 -->
+    <div class="section">
+        <h2>修士課程の目的・大目標</h2>
+        <div class="vision-display" id="visionDisplay">目標が設定されていません。</div>
+    </div>
+
+    <!-- 2. カウントダウンと全体の進捗率 -->
     <div class="section">
         <h2>修士卒業まで（全体の進捗）</h2>
         <div class="countdown">
@@ -121,35 +231,127 @@
             <div class="progress-bar" id="progressBar"></div>
         </div>
         <div class="progress-text">
-            <span>開始 (2026/04/01)</span>
+            <span id="startText">開始 (--/--/--)</span>
             <span id="progressPercentage">0%</span>
-            <span>卒業 (2030/03/25)</span>
+            <span id="targetText">卒業 (--/--/--)</span>
         </div>
     </div>
 
-    <!-- 2. 期間目標・カレンダー（外部編集エリア） -->
+    <!-- 3. 期間ごとのマイルストーン目標 -->
     <div class="section">
-        <h2>期間目標・スケジュール</h2>
-        <div class="calendar-wrapper">
-            
-            <!-- ↓↓↓ ここにコピーしたGoogleカレンダーの埋め込みコード（iframe）を貼り付けてください ↓↓↓ -->
-            <iframe src="https://calendar.google.com/calendar/embed?src=ja.japanese%23holiday%40group.v.calendar.google.com&ctz=Asia%2FTokyo" style="border: 0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
-            <!-- ↑↑↑ 貼り付けここまで ↑↑↑ -->
+        <h2>期間ごとの目標・マイルストーン</h2>
+        <ul class="milestone-list" id="milestoneListDisplay">
+            <!-- JSで動的に追加 -->
+        </ul>
+    </div>
 
+    <!-- 4. 編集用隠しパネル -->
+    <div class="edit-mode-panel" id="editPanel">
+        <h3 style="margin-top:0; color:#1e293b; font-size:1.1rem; border-bottom:2px solid #cbd5e1; padding-bottom:8px;">ダッシュボード設定</h3>
+        
+        <div class="form-group">
+            <label>修士課程の目的・大目標</label>
+            <textarea id="inputVision" rows="2"></textarea>
+        </div>
+
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+                <label>修了課程 開始日</label>
+                <input type="date" id="inputStartDate">
+            </div>
+            <div style="flex: 1;">
+                <label>卒業・学位授与 予定日</label>
+                <input type="date" id="inputTargetDate">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+                <span>期間ごとの目標設定 (カレンダー選択)</span>
+                <button class="btn" style="background:#2ecc71;" onclick="addMilestoneInputField()">＋ 目標を追加</button>
+            </label>
+            <div id="milestoneInputsContainer">
+                <!-- 動的に入力欄を追加 -->
+            </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right; display:flex; gap:10px; justify-content:flex-end;">
+            <button class="btn" style="background:#94a3b8;" onclick="toggleEditMode()">キャンセル</button>
+            <button class="btn" style="background:#2ecc71; font-weight:bold; padding:6px 20px;" onclick="saveSettings()">設定を保存</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 【設定】期間の基準日と卒業予定日
-    const startDate = new Date(2026, 3, 1, 0, 0, 0);   // 開始日 (2026年4月1日)
-    const targetDate = new Date(2030, 2, 25, 10, 0, 0); // 卒業日 (2030年3月25日)
+    // 初回アクセス時に表示される仮のデフォルトデータ
+    const defaultData = {
+        vision: "「〇〇のメカニズムを解明し、国際学会で成果を発表して納得のいく形で学位を取得する！」",
+        startDate: "2026-04-01",
+        targetDate: "2030-03-25",
+        milestones: [
+            { title: "中間発表・予備審査の突破", desc: "主査・副査を納得させる成果報告", date: "2027-07-15" },
+            { title: "主要データの測定・解析完了", desc: "論文の核となるデータのシミュレーションと合致", date: "2028-10-31" },
+            { title: "修士論文の執筆完了・提出", desc: "余裕を持って1週間前に形を完成させる", date: "2030-01-15" }
+        ]
+    };
 
-    function updateDashboard() {
+    let appData = {};
+
+    // データの読み込み
+    function loadData() {
+        const localData = localStorage.getItem('masterDashboardData');
+        if (localData) {
+            appData = JSON.parse(localData);
+        } else {
+            appData = JSON.parse(JSON.stringify(defaultData));
+        }
+        renderDisplay();
+    }
+
+    // 表示の更新
+    function renderDisplay() {
+        document.getElementById('visionDisplay').innerText = appData.vision;
+        document.getElementById('startText').innerText = `開始 (${appData.startDate.replace(/-/g, '/')})`;
+        document.getElementById('targetText').innerText = `卒業 (${appData.targetDate.replace(/-/g, '/')})`;
+
+        // マイルストーン表示の更新 (日付順にソート)
+        const sortedMilestones = [...appData.milestones].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const listContainer = document.getElementById('milestoneListDisplay');
+        listContainer.innerHTML = '';
+
+        if(sortedMilestones.length === 0) {
+            listContainer.innerHTML = '<li class="milestone-item" style="color:#94a3b8;">期間目標が登録されていません。</li>';
+        }
+
+        sortedMilestones.forEach(m => {
+            const li = document.createElement('li');
+            li.className = 'milestone-item';
+            
+            const d = new Date(m.date);
+            const dateStr = `${d.getFullYear()}年 ${(d.getMonth()+1)}月${d.getDate()}日`;
+
+            li.innerHTML = `
+                <div class="milestone-info">
+                    <span class="milestone-title">${m.title}</span>
+                    <span class="milestone-desc">${m.desc || ''}</span>
+                </div>
+                <span class="milestone-date-display">${dateStr}まで</span>
+            `;
+            listContainer.appendChild(li);
+        });
+    }
+
+    // カウントダウンとプログレスバーの定時更新
+    function updateCounters() {
+        if (!appData.startDate || !appData.targetDate) return;
+
         const now = new Date();
-        const totalDuration = targetDate - startDate;
-        const elapsedDuration = now - startDate;
-        const remainingDuration = targetDate - now;
+        const start = new Date(appData.startDate + "T00:00:00");
+        const target = new Date(appData.targetDate + "T10:00:00"); 
+
+        const totalDuration = target - start;
+        const elapsedDuration = now - start;
+        const remainingDuration = target - now;
 
         if (remainingDuration <= 0) {
             document.getElementById('days').innerText = '00';
@@ -158,7 +360,6 @@
             document.getElementById('seconds').innerText = '00';
             document.getElementById('progressBar').style.width = '100%';
             document.getElementById('progressPercentage').innerText = '100%';
-            clearInterval(timerInterval);
             return;
         }
 
@@ -179,8 +380,88 @@
         document.getElementById('progressPercentage').innerText = progressPercent.toFixed(1) + '%';
     }
 
-    const timerInterval = setInterval(updateDashboard, 1000);
-    updateDashboard();
+    // 編集モードの切り替え
+    let isEditMode = false;
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const panel = document.getElementById('editPanel');
+        const toggleBtn = document.getElementById('editToggleBtn');
+        
+        if (isEditMode) {
+            panel.style.display = 'block';
+            toggleBtn.innerText = '📁 表示モードに戻る';
+            
+            document.getElementById('inputVision').value = appData.vision;
+            document.getElementById('inputStartDate').value = appData.startDate;
+            document.getElementById('inputTargetDate').value = appData.targetDate;
+            
+            const container = document.getElementById('milestoneInputsContainer');
+            container.innerHTML = '';
+            appData.milestones.forEach((m, index) => {
+                addMilestoneInputField(m.title, m.desc, m.date);
+            });
+            
+            panel.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            panel.style.display = 'none';
+            toggleBtn.innerText = '⚙️ 設定・編集モード';
+        }
+    }
+
+    // マイルストーン入力フィールドの動的追加
+    function addMilestoneInputField(title = '', desc = '', date = '') {
+        const container = document.getElementById('milestoneInputsContainer');
+        const div = document.createElement('div');
+        div.className = 'milestone-inputs';
+        div.innerHTML = `
+            <div style="display:flex; gap:10px; margin-bottom:5px;">
+                <input type="text" placeholder="目標・イベント名（例: 中間発表）" class="m-title" value="${title}" style="flex:2;">
+                <input type="date" class="m-date" value="${date}" style="flex:1;">
+            </div>
+            <input type="text" placeholder="詳細・具体的な目的など（任意）" class="m-desc" value="${desc}">
+            <button class="btn btn-delete" onclick="this.parentElement.remove()">削除</button>
+        `;
+        container.appendChild(div);
+    }
+
+    // 設定の保存
+    function saveSettings() {
+        const vision = document.getElementById('inputVision').value;
+        const startDate = document.getElementById('inputStartDate').value;
+        const targetDate = document.getElementById('inputTargetDate').value;
+
+        if(!startDate || !targetDate) {
+            alert('開始日と卒業予定日は必須入力です。');
+            return;
+        }
+
+        const milestones = [];
+        const titleElements = document.querySelectorAll('.m-title');
+        const dateElements = document.querySelectorAll('.m-date');
+        const descElements = document.querySelectorAll('.m-desc');
+
+        for (let i = 0; i < titleElements.length; i++) {
+            if (titleElements[i].value.trim() !== '' && dateElements[i].value !== '') {
+                milestones.push({
+                    title: titleElements[i].value.trim(),
+                    desc: descElements[i].value.trim(),
+                    date: dateElements[i].value
+                });
+            }
+        }
+
+        appData = { vision, startDate, targetDate, milestones };
+        localStorage.setItem('masterDashboardData', JSON.stringify(appData));
+        
+        renderDisplay();
+        updateCounters();
+        toggleEditMode();
+    }
+
+    // 初期化
+    loadData();
+    setInterval(updateCounters, 1000);
+    updateCounters();
 </script>
 
 </body>
