@@ -212,6 +212,48 @@
             background: #c0392b;
         }
     </style>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>修士課程・個人目標管理ダッシュボード</title>
+    
+    <!-- アプリ風に全画面表示させるための設定 (iOS / Android) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- ホーム画面に表示されるアイコン画像（お好みの画像URL、または絵文字などを画像化したもの） -->
+    <!-- 例として簡易的なアイコンを設定（必要に応じて自由に変更してください） -->
+    <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/target/default/48px.svg">
+    <link rel="icon" type="image/png" href="https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/target/default/48px.svg">
+
+    <style>
+        /* スマホ向けに余白やカードの幅を微調整 */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 上詰めに変更してスマホで見やすく */
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px; /* 余白を狭く */
+            box-sizing: border-box;
+        }
+        .card {
+            background: white;
+            padding: 25px 20px; /* スマホ用にパディングを最適化 */
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 650px;
+            position: relative;
+            margin-top: 10px;
+        }
+        /* ... (その他のスタイルは既存のまま) ... */
+    </style>
+</head>
 </head>
 <body>
 
