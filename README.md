@@ -168,7 +168,7 @@
 <script>
     // 【設定】期間の基準日と卒業予定日
     const startDate = new Date(2026, 3, 1, 0, 0, 0);   // 開始日 (2026年4月1日) ※月は-1
-    const targetDate = new Date(2028, 2, 25, 10, 0, 0); // 卒業日 (2028年3月25日) ※月は-1
+    const targetDate = new Date(2030, 2, 25, 10, 0, 0); // 卒業日 (2028年3月25日) ※月は-1
 
     function updateDashboard() {
         const now = new Date();
