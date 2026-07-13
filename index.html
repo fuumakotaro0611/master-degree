@@ -1,1 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>修士課程・目標管理カウントダウン</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 700px;
+        }
+        .section {
+            margin-bottom: 35px;
+        }
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        h2 {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        /* カウントダウンのスタイル */
+        .countdown {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .time-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            border-radius: 8px;
+            flex: 1;
+            text-align: center;
+        }
+        .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1e293b;
+            display: block;
+        }
+        .label {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+        /* 進捗バーのスタイル */
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 12px;
+            width: 100%;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .progress-bar {
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            font-size: 0.85rem;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+        }
+        /* カレンダー埋め込みエリア */
+        .calendar-wrapper {
+            position: relative;
+            padding-bottom: 75%; /* 4:3 の比率でレスポンシブ対応 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .calendar-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
 
+<div class="card">
+    <!-- 1. 卒業カウントダウンと全体の進捗率 -->
+    <div class="section">
+        <h2>修士卒業まで（全体の進捗）</h2>
+        <div class="countdown">
+            <div class="time-box"><span class="number" id="days">00</span><span class="label">日</span></div>
+            <div class="time-box"><span class="number" id="hours">00</span><span class="label">時間</span></div>
+            <div class="time-box"><span class="number" id="minutes">00</span><span class="label">分</span></div>
+            <div class="time-box"><span class="number" id="seconds">00</span><span class="label">秒</span></div>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-text">
+            <span>開始 (2026/04/01)</span>
+            <span id="progressPercentage">0%</span>
+            <span>卒業 (2028/03/25)</span>
+        </div>
+    </div>
+
+    <!-- 2. 期間目標・カレンダー（外部編集エリア） -->
+    <div class="section">
+        <h2>期間目標・スケジュール</h2>
+        <div class="calendar-wrapper">
+            
+            <!-- ↓↓↓ ここにコピーしたGoogleカレンダーの埋め込みコード（iframe）を貼り付けてください ↓↓↓ -->
+            <iframe src="https://calendar.google.com/calendar/embed?src=ja.japanese%23holiday%40group.v.calendar.google.com&ctz=Asia%2FTokyo" style="border: 0" width="800" height="600" frameborder="0" scrolling="no"></iframe>
+            <!-- ↑↑↑ 貼り付けここまで ↑↑↑ -->
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 【設定】期間の基準日と卒業予定日
+    const startDate = new Date(2026, 3, 1, 0, 0, 0);   // 開始日 (2026年4月1日)
+    const targetDate = new Date(2028, 2, 25, 10, 0, 0); // 卒業日 (2028年3月25日)
+
+    function updateDashboard() {
+        const now = new Date();
+        const totalDuration = targetDate - startDate;
+        const elapsedDuration = now - startDate;
+        const remainingDuration = targetDate - now;
+
+        if (remainingDuration <= 0) {
+            document.getElementById('days').innerText = '00';
+            document.getElementById('hours').innerText = '00';
+            document.getElementById('minutes').innerText = '00';
+            document.getElementById('seconds').innerText = '00';
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressPercentage').innerText = '100%';
+            clearInterval(timerInterval);
+            return;
+        }
+
+        const days = Math.floor(remainingDuration / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((remainingDuration % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((remainingDuration % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((remainingDuration % (1000 * 60)) / 1000);
+
+        document.getElementById('days').innerText = String(days).padStart(2, '0');
+        document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+        document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+        document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+
+        let progressPercent = (elapsedDuration / totalDuration) * 100;
+        progressPercent = Math.max(0, Math.min(100, progressPercent));
+        
+        document.getElementById('progressBar').style.width = progressPercent.toFixed(2) + '%';
+        document.getElementById('progressPercentage').innerText = progressPercent.toFixed(1) + '%';
+    }
+
+    const timerInterval = setInterval(updateDashboard, 1000);
+    updateDashboard();
+</script>
+
+</body>
+</html>
