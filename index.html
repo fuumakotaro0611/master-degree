@@ -120,6 +120,7 @@
         .milestone-info {
             display: flex;
             flex-direction: column;
+            flex: 1;
         }
         .milestone-title {
             font-weight: bold;
@@ -131,11 +132,15 @@
             margin-top: 2px;
         }
         .milestone-date-display {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #3498db;
             font-weight: bold;
             white-space: nowrap;
             margin-left: 15px;
+            text-align: right;
+            background: #e0f2fe;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
         /* ボタンとフォーム関係 */
         .btn {
@@ -192,15 +197,16 @@
         }
         .milestone-inputs {
             background: #f1f5f9;
-            padding: 10px;
+            padding: 12px;
             border-radius: 6px;
             margin-bottom: 10px;
             position: relative;
+            border: 1px solid #e2e8f0;
         }
         .btn-delete {
             background: #e74c3c;
             padding: 4px 8px;
-            margin-top: 5px;
+            margin-top: 8px;
         }
         .btn-delete:hover {
             background: #c0392b;
@@ -267,7 +273,7 @@
 
         <div class="form-group">
             <label style="display:flex; justify-content:space-between; align-items:center;">
-                <span>期間ごとの目標設定 (カレンダー選択)</span>
+                <span>期間ごとの目標設定（開始日〜終了日）</span>
                 <button class="btn" style="background:#2ecc71;" onclick="addMilestoneInputField()">＋ 目標を追加</button>
             </label>
             <div id="milestoneInputsContainer">
@@ -283,39 +289,51 @@
 </div>
 
 <script>
-    // 初回アクセス時に表示される仮のデフォルトデータ
+    // デフォルトデータ（期間表示に対応）
     const defaultData = {
         vision: "「〇〇のメカニズムを解明し、国際学会で成果を発表して納得のいく形で学位を取得する！」",
         startDate: "2026-04-01",
         targetDate: "2030-03-25",
         milestones: [
-            { title: "中間発表・予備審査の突破", desc: "主査・副査を納得させる成果報告", date: "2027-07-15" },
-            { title: "主要データの測定・解析完了", desc: "論文の核となるデータのシミュレーションと合致", date: "2028-10-31" },
-            { title: "修士論文の執筆完了・提出", desc: "余裕を持って1週間前に形を完成させる", date: "2030-01-15" }
+            { title: "基礎研究・文献調査フェーズ", desc: "関連論文を読み込み研究背景を固める", dateStart: "2026-04-01", dateEnd: "2026-07-31" },
+            { title: "中間発表・予備審査の突破", desc: "主査・副査を納得させる成果報告", dateStart: "2027-06-01", dateEnd: "2027-07-15" },
+            { title: "修士論文の執筆完了・提出", desc: "余裕を持って形を完成させる", dateStart: "2029-11-01", dateEnd: "2030-01-15" }
         ]
     };
 
     let appData = {};
 
-    // データの読み込み
     function loadData() {
-        const localData = localStorage.getItem('masterDashboardData');
+        const localData = localStorage.getItem('masterDashboardData_v2');
         if (localData) {
             appData = JSON.parse(localData);
         } else {
-            appData = JSON.parse(JSON.stringify(defaultData));
+            // 旧バージョンデータがある場合の互換性処理
+            const oldLocalData = localStorage.getItem('masterDashboardData');
+            if (oldLocalData) {
+                const oldData = JSON.parse(oldLocalData);
+                appData = {
+                    vision: oldData.vision,
+                    startDate: oldData.startDate,
+                    targetDate: oldData.targetDate,
+                    milestones: oldData.milestones.map(m => ({
+                        title: m.title, desc: m.desc, dateStart: m.date, dateEnd: m.date
+                    }))
+                };
+            } else {
+                appData = JSON.parse(JSON.stringify(defaultData));
+            }
         }
         renderDisplay();
     }
 
-    // 表示の更新
     function renderDisplay() {
         document.getElementById('visionDisplay').innerText = appData.vision;
         document.getElementById('startText').innerText = `開始 (${appData.startDate.replace(/-/g, '/')})`;
         document.getElementById('targetText').innerText = `卒業 (${appData.targetDate.replace(/-/g, '/')})`;
 
-        // マイルストーン表示の更新 (日付順にソート)
-        const sortedMilestones = [...appData.milestones].sort((a, b) => new Date(a.date) - new Date(b.date));
+        // 開始日順にソートして表示
+        const sortedMilestones = [...appData.milestones].sort((a, b) => new Date(a.dateStart) - new Date(b.dateStart));
         const listContainer = document.getElementById('milestoneListDisplay');
         listContainer.innerHTML = '';
 
@@ -327,21 +345,27 @@
             const li = document.createElement('li');
             li.className = 'milestone-item';
             
-            const d = new Date(m.date);
-            const dateStr = `${d.getFullYear()}年 ${(d.getMonth()+1)}月${d.getDate()}日`;
+            const dStart = new Date(m.dateStart);
+            const dEnd = new Date(m.dateEnd);
+            
+            let periodStr = "";
+            if (m.dateStart === m.dateEnd) {
+                periodStr = `${dStart.getFullYear()}/${dStart.getMonth()+1}/${dStart.getDate()}`;
+            } else {
+                periodStr = `${dStart.getFullYear()}/${dStart.getMonth()+1}/${dStart.getDate()} ～ ${dEnd.getFullYear()}/${dEnd.getMonth()+1}/${dEnd.getDate()}`;
+            }
 
             li.innerHTML = `
                 <div class="milestone-info">
                     <span class="milestone-title">${m.title}</span>
                     <span class="milestone-desc">${m.desc || ''}</span>
                 </div>
-                <span class="milestone-date-display">${dateStr}まで</span>
+                <span class="milestone-date-display">${periodStr}</span>
             `;
             listContainer.appendChild(li);
         });
     }
 
-    // カウントダウンとプログレスバーの定時更新
     function updateCounters() {
         if (!appData.startDate || !appData.targetDate) return;
 
@@ -380,7 +404,6 @@
         document.getElementById('progressPercentage').innerText = progressPercent.toFixed(1) + '%';
     }
 
-    // 編集モードの切り替え
     let isEditMode = false;
     function toggleEditMode() {
         isEditMode = !isEditMode;
@@ -397,8 +420,8 @@
             
             const container = document.getElementById('milestoneInputsContainer');
             container.innerHTML = '';
-            appData.milestones.forEach((m, index) => {
-                addMilestoneInputField(m.title, m.desc, m.date);
+            appData.milestones.forEach(m => {
+                addMilestoneInputField(m.title, m.desc, m.dateStart, m.dateEnd);
             });
             
             panel.scrollIntoView({ behavior: 'smooth' });
@@ -408,23 +431,27 @@
         }
     }
 
-    // マイルストーン入力フィールドの動的追加
-    function addMilestoneInputField(title = '', desc = '', date = '') {
+    function addMilestoneInputField(title = '', desc = '', dateStart = '', dateEnd = '') {
         const container = document.getElementById('milestoneInputsContainer');
         const div = document.createElement('div');
         div.className = 'milestone-inputs';
         div.innerHTML = `
-            <div style="display:flex; gap:10px; margin-bottom:5px;">
-                <input type="text" placeholder="目標・イベント名（例: 中間発表）" class="m-title" value="${title}" style="flex:2;">
-                <input type="date" class="m-date" value="${date}" style="flex:1;">
+            <div style="margin-bottom: 8px;">
+                <input type="text" placeholder="目標・イベント名（例: 中間発表フェーズ）" class="m-title" value="${title}">
             </div>
-            <input type="text" placeholder="詳細・具体的な目的など（任意）" class="m-desc" value="${desc}">
+            <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+                <input type="date" class="m-date-start" value="${dateStart}" style="flex:1;">
+                <span style="font-size:0.8rem; color:#64748b;">～</span>
+                <input type="date" class="m-date-end" value="${dateEnd}" style="flex:1;">
+            </div>
+            <div>
+                <input type="text" placeholder="詳細・具体的な目的など（任意）" class="m-desc" value="${desc}">
+            </div>
             <button class="btn btn-delete" onclick="this.parentElement.remove()">削除</button>
         `;
         container.appendChild(div);
     }
 
-    // 設定の保存
     function saveSettings() {
         const vision = document.getElementById('inputVision').value;
         const startDate = document.getElementById('inputStartDate').value;
@@ -437,28 +464,31 @@
 
         const milestones = [];
         const titleElements = document.querySelectorAll('.m-title');
-        const dateElements = document.querySelectorAll('.m-date');
+        const startElements = document.querySelectorAll('.m-date-start');
+        const endElements = document.querySelectorAll('.m-date-end');
         const descElements = document.querySelectorAll('.m-desc');
 
         for (let i = 0; i < titleElements.length; i++) {
-            if (titleElements[i].value.trim() !== '' && dateElements[i].value !== '') {
+            if (titleElements[i].value.trim() !== '' && startElements[i].value !== '') {
+                // 終了日が空の場合は開始日と同じにする
+                const endVal = endElements[i].value !== '' ? endElements[i].value : startElements[i].value;
                 milestones.push({
                     title: titleElements[i].value.trim(),
                     desc: descElements[i].value.trim(),
-                    date: dateElements[i].value
+                    dateStart: startElements[i].value,
+                    dateEnd: endVal
                 });
             }
         }
 
         appData = { vision, startDate, targetDate, milestones };
-        localStorage.setItem('masterDashboardData', JSON.stringify(appData));
+        localStorage.setItem('masterDashboardData_v2', JSON.stringify(appData));
         
         renderDisplay();
         updateCounters();
         toggleEditMode();
     }
 
-    // 初期化
     loadData();
     setInterval(updateCounters, 1000);
     updateCounters();
